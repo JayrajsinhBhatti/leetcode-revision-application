@@ -382,12 +382,12 @@ input:focus, select:focus, textarea:focus {
 }
 
 .form-group {
-    flex: 1 1 200px;
-    min-width: 0; /* Allows text overflow if needed */
+    flex: 1;
+    min-width: 200px;
 }
 
 .form-group.flex-2 {
-    flex: 2 1 400px;
+    flex: 2;
 }
 
 .form-group label {
@@ -552,17 +552,8 @@ input:focus, select:focus, textarea:focus {
 .revision-container {
     display: flex;
     justify-content: center;
-    align-items: flex-start;
-    min-height: 60vh;
-}
-
-.revision-list {
-    display: flex;
-    flex-direction: column;
-    gap: 2rem;
-    width: 100%;
     align-items: center;
-    padding-bottom: 2rem;
+    min-height: 60vh;
 }
 
 .flashcard {

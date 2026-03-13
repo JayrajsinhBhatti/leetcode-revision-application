@@ -123,12 +123,8 @@
 
                         <div class="form-row">
                             <div class="form-group">
-                                <label for="problem-difficulty">LeetCode Difficulty</label>
-                                <input type="text" id="problem-difficulty" placeholder="Auto-extracted" readonly style="background-color: var(--bg-base); cursor: not-allowed; opacity: 0.8;">
-                            </div>
-                            <div class="form-group">
-                                <label for="perceived-difficulty">How did it feel?</label>
-                                <select id="perceived-difficulty" required>
+                                <label for="problem-difficulty">Difficulty</label>
+                                <select id="problem-difficulty" required>
                                     <option value="Easy">Easy</option>
                                     <option value="Medium">Medium</option>
                                     <option value="Hard">Hard</option>
@@ -138,9 +134,6 @@
                                 <label for="problem-topic">Topic/Tag</label>
                                 <input type="text" id="problem-topic" placeholder="e.g. Array, DP" required>
                             </div>
-                        </div>
-
-                        <div class="form-row">
                             <div class="form-group">
                                 <label for="mistake-type">Mistake Type</label>
                                 <select id="mistake-type" required>
@@ -277,8 +270,37 @@
                         <p>All caught up! No problems need revision right now.</p>
                     </div>
                     
-                    <div id="revision-list" class="revision-list hidden">
-                        <!-- Populated by JS -->
+                    <div id="revision-card" class="card flashcard hidden">
+                        <div class="flashcard-front">
+                            <div class="flashcard-header">
+                                <span class="badge" id="rev-difficulty">Difficulty</span>
+                                <span class="badge outline" id="rev-topic">Topic</span>
+                            </div>
+                            <h2 id="rev-title">Problem Title</h2>
+                            <a href="#" id="rev-link" target="_blank" class="btn sm outline">Open in LeetCode</a>
+                            
+                            <div class="rev-mistake-hint">
+                                <strong>Your Mistake:</strong> <span id="rev-mistake-type"></span>
+                            </div>
+                            
+                            <button id="rev-reveal-btn" class="btn primary full-width mt-4">Reveal Solution</button>
+                        </div>
+                        
+                        <div class="flashcard-back hidden">
+                            <div class="rev-section">
+                                <h3>What you did wrong</h3>
+                                <p id="rev-wrong"></p>
+                            </div>
+                            <div class="rev-section">
+                                <h3>Correct Approach</h3>
+                                <p id="rev-correct"></p>
+                            </div>
+                            
+                            <div class="rev-actions">
+                                <button id="rev-confused-btn" class="btn warning">Still Confused</button>
+                                <button id="rev-remember-btn" class="btn success">I Remember Now!</button>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </section>

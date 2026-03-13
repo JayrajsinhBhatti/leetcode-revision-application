@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 // app.js
 // Main Application Logic and UI bindings
 
@@ -93,8 +92,8 @@ document.addEventListener('DOMContentLoaded', () => {
         }, 3000);
     }
 
-    // --- Title & Difficulty Extraction ---
-    extractBtn.addEventListener('click', async () => {
+    // --- Title Extraction ---
+    extractBtn.addEventListener('click', () => {
         const url = linkInput.value;
         if (!url) {
             showToast('Please enter a link first', 'error');
@@ -109,99 +108,18 @@ document.addEventListener('DOMContentLoaded', () => {
             const problemsIndex = pathParts.indexOf('problems');
             if (problemsIndex !== -1 && pathParts.length > problemsIndex + 1) {
                 const slug = pathParts[problemsIndex + 1];
+                // Convert typical slug 'two-sum' to 'Two Sum'
+                const formattedTitle = slug.split('-').map(word => 
+                    word.charAt(0).toUpperCase() + word.slice(1)
+                ).join(' ');
                 
-                // Set loading state
-                extractBtn.textContent = '...';
-                extractBtn.disabled = true;
-
-                // We will use a triple-fallback approach to bypass strict CORS rules and rate limits
-                const query = `query questionTitle($titleSlug: String!) {
-                    question(titleSlug: $titleSlug) {
-                        title
-                        difficulty
-                    }
-                }`;
-
-                try {
-                    let titleVal = '';
-                    let diffVal = '';
-                    
-                    try {
-                        // Attempt 1: Direct hitting LeetCode (Works on Live Server or when CORS handles properly)
-                        const response = await fetch('https://leetcode.com/graphql', {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({
-                                operationName: 'questionTitle',
-                                variables: { titleSlug: slug },
-                                query: query
-                            })
-                        });
-                        if (!response.ok) throw new Error("Network response was not ok");
-                        const data = await response.json();
-                        
-                        if (data && data.data && data.data.question) {
-                            titleVal = data.data.question.title;
-                            diffVal = data.data.question.difficulty;
-                        } else {
-                            throw new Error("Missing data");
-                        }
-                    } catch (e1) {
-                        try {
-                            // Attempt 2: Use alfa-leetcode API (Often works but has strict 429 rate limits)
-                            const response = await fetch(`https://alfa-leetcode-api.onrender.com/select?titleSlug=${slug}`);
-                            if (!response.ok) throw new Error("Alfa API failed");
-                            const apiData = await response.json();
-                            if (apiData && apiData.questionTitle) {
-                                titleVal = apiData.questionTitle;
-                                diffVal = apiData.difficulty;
-                            } else {
-                                throw new Error("Not found in Alfa API");
-                            }
-                        } catch (e2) {
-                            // Attempt 3: Use AllOrigins GET Proxy
-                            const leetcodeReq = 'https://leetcode.com/graphql?query=' + encodeURIComponent(query) + '&operationName=questionTitle&variables=' + encodeURIComponent(JSON.stringify({ titleSlug: slug }));
-                            const proxyUrl = 'https://api.allorigins.win/get?url=' + encodeURIComponent(leetcodeReq);
-                            
-                            const response = await fetch(proxyUrl);
-                            if (!response.ok) throw new Error("Proxy response was not ok");
-                            const proxyData = await response.json();
-                            
-                            const parsedContents = JSON.parse(proxyData.contents);
-                            if (parsedContents && parsedContents.data && parsedContents.data.question) {
-                                titleVal = parsedContents.data.question.title;
-                                diffVal = parsedContents.data.question.difficulty;
-                            } else {
-                                throw new Error("Not found in AllOrigins proxy API");
-                            }
-                        }
-                    }
-                    
-                    titleInput.value = titleVal;
-                    document.getElementById('problem-difficulty').value = diffVal;
-                    document.getElementById('perceived-difficulty').value = diffVal; // Pre-select
-                    showToast('Extracted successfully');
-                    
-                } catch (apiError) {
-                    console.log("All three APIs failed, falling back to slug parsing", apiError);
-                    // Fallback to URL parsing for title if APIs fail entirely
-                    const formattedTitle = slug.split('-').map(word => 
-                        word.charAt(0).toUpperCase() + word.slice(1)
-                    ).join(' ');
-                    
-                    titleInput.value = formattedTitle;
-                    document.getElementById('problem-difficulty').value = 'Unknown';
-                    showToast('Title extracted, difficulty requires manual input due to network block', 'warning');
-                }
-
+                titleInput.value = formattedTitle;
+                showToast('Title extracted successfully');
             } else {
                 showToast('Could not extract title from URL', 'error');
             }
         } catch (e) {
             showToast('Invalid URL', 'error');
-        } finally {
-            extractBtn.textContent = 'Extract';
-            extractBtn.disabled = false;
         }
     });
 
@@ -209,13 +127,10 @@ document.addEventListener('DOMContentLoaded', () => {
     addForm.addEventListener('submit', (e) => {
         e.preventDefault();
 
-        const diffInput = document.getElementById('problem-difficulty').value;
-
         const problem = {
             link: document.getElementById('problem-link').value,
             title: document.getElementById('problem-title').value,
-            difficulty: document.getElementById('perceived-difficulty').value, // Used for tracker filtering and colors
-            lcDifficulty: diffInput || 'Unknown', // Stored for accurate stats if needed
+            difficulty: document.getElementById('problem-difficulty').value,
             topic: document.getElementById('problem-topic').value,
             mistakeType: document.getElementById('mistake-type').value,
             whatWentWrong: document.getElementById('what-went-wrong').value,
@@ -404,90 +319,58 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- Revision Mode ---
     const revEmpty = document.getElementById('revision-empty');
-    const revList = document.getElementById('revision-list');
+    const revCard = document.getElementById('revision-card');
+    const revFront = revCard.querySelector('.flashcard-front');
+    const revBack = revCard.querySelector('.flashcard-back');
+    const revRevealBtn = document.getElementById('rev-reveal-btn');
+    const revConfusedBtn = document.getElementById('rev-confused-btn');
+    const revRememberBtn = document.getElementById('rev-remember-btn');
+
+    revRevealBtn.addEventListener('click', () => {
+        revFront.classList.add('hidden');
+        revBack.classList.remove('hidden');
+    });
+
+    revConfusedBtn.addEventListener('click', () => {
+        showToast('Kept in revision list.');
+        renderRevisionMode();
+    });
+
+    revRememberBtn.addEventListener('click', () => {
+        if (revProblem) {
+            StorageManager.updateProblem(revProblem.id, { needsRevision: false });
+            showToast('Marked as mastered!');
+            renderRevisionMode();
+        }
+    });
 
     function renderRevisionMode() {
+        revFront.classList.remove('hidden');
+        revBack.classList.add('hidden');
+
         const toRevise = StorageManager.getProblems().filter(p => p.needsRevision);
         
         if (toRevise.length === 0) {
             revEmpty.classList.remove('hidden');
-            revList.classList.add('hidden');
+            revCard.classList.add('hidden');
             return;
         }
 
         revEmpty.classList.add('hidden');
-        revList.classList.remove('hidden');
+        revCard.classList.remove('hidden');
 
-        // Show all problems, starting from newest to older
-        toRevise.sort((a,b) => new Date(b.createdAt) - new Date(a.createdAt));
+        // Pick random
+        const randomIndex = Math.floor(Math.random() * toRevise.length);
+        revProblem = toRevise[randomIndex];
 
-        revList.innerHTML = '';
+        document.getElementById('rev-difficulty').textContent = revProblem.difficulty;
+        document.getElementById('rev-difficulty').className = `badge diff-bg-${revProblem.difficulty.toLowerCase()} diff-${revProblem.difficulty.toLowerCase()}`;
+        document.getElementById('rev-topic').textContent = revProblem.topic;
+        document.getElementById('rev-title').textContent = revProblem.title;
+        document.getElementById('rev-link').href = revProblem.link;
+        document.getElementById('rev-mistake-type').textContent = revProblem.mistakeType;
 
-        toRevise.forEach(revProblem => {
-            const card = document.createElement('div');
-            card.className = 'card flashcard';
-            
-            card.innerHTML = `
-                <div class="flashcard-front">
-                    <div class="flashcard-header">
-                        <span class="badge diff-bg-${revProblem.difficulty.toLowerCase()} diff-${revProblem.difficulty.toLowerCase()}">${revProblem.difficulty}</span>
-                        <span class="badge outline">${revProblem.topic}</span>
-                    </div>
-                    <h2>${revProblem.title}</h2>
-                    <a href="${revProblem.link}" target="_blank" class="btn sm outline">Open in LeetCode</a>
-                    
-                    <div class="rev-mistake-hint">
-                        <strong>Your Mistake:</strong> <span>${revProblem.mistakeType}</span>
-                    </div>
-                    
-                    <button class="btn primary full-width mt-4 rev-reveal-btn">Reveal Solution</button>
-                </div>
-                
-                <div class="flashcard-back hidden">
-                    <div class="rev-section">
-                        <h3>What you did wrong</h3>
-                        <p>${revProblem.whatWentWrong}</p>
-                    </div>
-                    <div class="rev-section">
-                        <h3>Correct Approach</h3>
-                        <p>${revProblem.correctApproach}</p>
-                    </div>
-                    
-                    <div class="rev-actions">
-                        <button class="btn warning rev-confused-btn">Still Confused</button>
-                        <button class="btn success rev-remember-btn">I Remember Now!</button>
-                    </div>
-                </div>
-            `;
-
-            // Setup events per card
-            const revFront = card.querySelector('.flashcard-front');
-            const revBack = card.querySelector('.flashcard-back');
-            const revRevealBtn = card.querySelector('.rev-reveal-btn');
-            const revConfusedBtn = card.querySelector('.rev-confused-btn');
-            const revRememberBtn = card.querySelector('.rev-remember-btn');
-
-            revRevealBtn.addEventListener('click', () => {
-                revFront.classList.add('hidden');
-                revBack.classList.remove('hidden');
-            });
-
-            revConfusedBtn.addEventListener('click', () => {
-                showToast('Kept in revision list.');
-                // Flip back to front or let it stay open?
-                // Let's hide back and show front so they can re-read if they want later.
-                revFront.classList.remove('hidden');
-                revBack.classList.add('hidden');
-            });
-
-            revRememberBtn.addEventListener('click', () => {
-                StorageManager.updateProblem(revProblem.id, { needsRevision: false });
-                showToast('Marked as mastered!');
-                renderRevisionMode();
-            });
-
-            revList.appendChild(card);
-        });
+        document.getElementById('rev-wrong').textContent = revProblem.whatWentWrong;
+        document.getElementById('rev-correct').textContent = revProblem.correctApproach;
     }
 });
-
