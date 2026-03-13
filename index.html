@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LeetCode Revision Notebook</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <!-- Phosphor Icons for modern vector icons -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <i class="ph ph-brackets-curly logo-icon"></i>
+                <h2>LC Tracker</h2>
+            </div>
+            
+            <nav class="nav-menu">
+                <a href="#" class="nav-item active" data-target="dashboard">
+                    <i class="ph ph-squares-four"></i>
+                    <span>Dashboard</span>
+                </a>
+                <a href="#" class="nav-item" data-target="tracker">
+                    <i class="ph ph-list-dashes"></i>
+                    <span>Mistake Tracker</span>
+                </a>
+                <a href="#" class="nav-item" data-target="revision">
+                    <i class="ph ph-cards"></i>
+                    <span>Revision Mode</span>
+                </a>
+                <a href="#" class="nav-item add-btn" data-target="add-problem">
+                    <i class="ph ph-plus-circle"></i>
+                    <span>Add Problem</span>
+                </a>
+            </nav>
+
+            <div class="sidebar-footer">
+                <button id="theme-toggle" class="icon-btn theme-toggle">
+                    <i class="ph ph-moon"></i>
+                    <span>Toggle Theme</span>
+                </button>
+            </div>
+        </aside>
+
+        <!-- Main Content Area -->
+        <main class="main-content">
+            
+            <!-- Dashboard Section -->
+            <section id="dashboard" class="page-section active">
+                <header class="section-header">
+                    <h1>Dashboard</h1>
+                    <div class="search-bar">
+                        <i class="ph ph-magnifying-glass"></i>
+                        <input type="text" id="global-search" placeholder="Search problems...">
+                    </div>
+                </header>
+                
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <i class="ph ph-files"></i>
+                        <div class="stat-info">
+                            <h3>Total Saved</h3>
+                            <p id="stat-total">0</p>
+                        </div>
+                    </div>
+                    <div class="stat-card success">
+                        <i class="ph ph-check-circle"></i>
+                        <div class="stat-info">
+                            <h3>Mastered</h3>
+                            <p id="stat-mastered">0</p>
+                        </div>
+                    </div>
+                    <div class="stat-card warning">
+                        <i class="ph ph-clock-counter-clockwise"></i>
+                        <div class="stat-info">
+                            <h3>To Revise</h3>
+                            <p id="stat-revise">0</p>
+                        </div>
+                    </div>
+                    <div class="stat-card info">
+                        <i class="ph ph-flame"></i>
+                        <div class="stat-info">
+                            <h3>Streak</h3>
+                            <p id="stat-streak">0 days</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="dashboard-recent">
+                    <h2>Recently Added</h2>
+                    <div class="recent-list" id="recent-problems-list">
+                        <!-- Populated by JS -->
+                        <div class="empty-state">No problems tracked yet.</div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Add Problem Section -->
+            <section id="add-problem" class="page-section">
+                <header class="section-header">
+                    <h1>Add Problem</h1>
+                </header>
+                <div class="card form-container">
+                    <form id="add-problem-form">
+                        <div class="form-row">
+                            <div class="form-group flex-2">
+                                <label for="problem-link">LeetCode Link</label>
+                                <div class="input-with-button">
+                                    <input type="url" id="problem-link" placeholder="https://leetcode.com/problems/..." required>
+                                    <button type="button" id="extract-title-btn" class="btn secondary">Extract</button>
+                                </div>
+                            </div>
+                            <div class="form-group flex-2">
+                                <label for="problem-title">Problem Title</label>
+                                <input type="text" id="problem-title" placeholder="e.g. Two Sum" required>
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="problem-difficulty">LeetCode Difficulty</label>
+                                <input type="text" id="problem-difficulty" placeholder="Auto-extracted" readonly style="background-color: var(--bg-base); cursor: not-allowed; opacity: 0.8;">
+                            </div>
+                            <div class="form-group">
+                                <label for="perceived-difficulty">How did it feel?</label>
+                                <select id="perceived-difficulty" required>
+                                    <option value="Easy">Easy</option>
+                                    <option value="Medium">Medium</option>
+                                    <option value="Hard">Hard</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="problem-topic">Topic/Tag</label>
+                                <input type="text" id="problem-topic" placeholder="e.g. Array, DP" required>
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="mistake-type">Mistake Type</label>
+                                <select id="mistake-type" required>
+                                    <option value="Logic error">Logic error</option>
+                                    <option value="Wrong algorithm">Wrong algorithm</option>
+                                    <option value="Edge case missed">Edge case missed</option>
+                                    <option value="Time complexity issue">Time complexity issue</option>
+                                    <option value="Syntax/implementation mistake">Syntax/implementation mistake</option>
+                                    <option value="Other">Other</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="what-went-wrong">What went wrong?</label>
+                                <textarea id="what-went-wrong" rows="3" placeholder="Describe your mistake..." required></textarea>
+                            </div>
+                            <div class="form-group">
+                                <label for="correct-approach">Correct approach / Learning</label>
+                                <textarea id="correct-approach" rows="3" placeholder="How to solve it correctly..." required></textarea>
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="time-taken">Time taken (mins)</label>
+                                <input type="number" id="time-taken" placeholder="e.g. 45" min="1">
+                            </div>
+                            <div class="form-group">
+                                <label for="confidence-level">Confidence (1-5)</label>
+                                <input type="range" id="confidence-level" min="1" max="5" value="3" oninput="this.nextElementSibling.value = this.value">
+                                <output>3</output>
+                            </div>
+                        </div>
+                        
+                        <div class="form-row actions-row">
+                            <label class="checkbox-label">
+                                <input type="checkbox" id="needs-revision" checked>
+                                Needs Revision?
+                            </label>
+                            <button type="submit" class="btn primary">Save Problem</button>
+                        </div>
+                    </form>
+                </div>
+            </section>
+
+            <!-- Tracker Section -->
+            <section id="tracker" class="page-section">
+                <header class="section-header">
+                    <h1>Mistake Tracker</h1>
+                    <div class="filters">
+                        <select id="filter-difficulty">
+                            <option value="">All Difficulties</option>
+                            <option value="Easy">Easy</option>
+                            <option value="Medium">Medium</option>
+                            <option value="Hard">Hard</option>
+                        </select>
+                        <select id="filter-revision">
+                            <option value="">All Statuses</option>
+                            <option value="true">Needs Revision</option>
+                            <option value="false">Mastered</option>
+                        </select>
+                    </div>
+                </header>
+                <div class="table-container">
+                    <table class="data-table" id="tracker-table">
+                        <thead>
+                            <tr>
+                                <th>Title</th>
+                                <th>Difficulty</th>
+                                <th>Topic</th>
+                                <th>Mistake</th>
+                                <th>Revision</th>
+                                <th>Date</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tracker-body">
+                            <!-- Populated by JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+             <!-- Problem Detail Section -->
+             <section id="problem-detail" class="page-section">
+                <header class="section-header">
+                    <button class="btn icon-btn" id="back-to-tracker"><i class="ph ph-arrow-left"></i> Back</button>
+                    <h1 id="detail-title">Problem Title</h1>
+                    <a href="#" id="detail-link" target="_blank" class="btn outline"><i class="ph ph-link"></i> LeetCode</a>
+                </header>
+                <div class="detail-grid">
+                    <div class="card main-detail">
+                        <div class="tags">
+                            <span id="detail-difficulty" class="badge">Difficulty</span>
+                            <span id="detail-topic" class="badge outline">Topic</span>
+                            <span id="detail-mistake" class="badge error">Mistake</span>
+                        </div>
+                        
+                        <div class="detail-section">
+                            <h3>What went wrong?</h3>
+                            <p id="detail-wrong-notes">Notes here...</p>
+                        </div>
+
+                        <div class="detail-section">
+                            <h3>Correct Approach & Learning</h3>
+                            <p id="detail-correct-notes">Learning here...</p>
+                        </div>
+                    </div>
+                    
+                    <div class="card sidebar-detail">
+                        <div class="detail-meta">
+                            <div><i class="ph ph-calendar"></i> <span id="detail-date">Date</span></div>
+                            <div><i class="ph ph-clock"></i> <span id="detail-time">Time mins</span></div>
+                            <div><i class="ph ph-star"></i> <span id="detail-confidence">Confidence / 5</span></div>
+                        </div>
+                        <div class="detail-actions">
+                            <button id="btn-toggle-mastered" class="btn primary full-width">Mark as Mastered</button>
+                            <button id="btn-delete-problem" class="btn danger outline full-width">Delete</button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Revision Mode Section -->
+            <section id="revision" class="page-section">
+                <header class="section-header">
+                    <h1>Revision Mode</h1>
+                </header>
+                <div class="revision-container">
+                    <div id="revision-empty" class="empty-state">
+                        <i class="ph ph-check-circle ph-4x"></i>
+                        <p>All caught up! No problems need revision right now.</p>
+                    </div>
+                    
+                    <div id="revision-list" class="revision-list hidden">
+                        <!-- Populated by JS -->
+                    </div>
+                </div>
+            </section>
+
+        </main>
+    </div>
+
+    <!-- Notification Toast -->
+    <div id="toast-container" class="toast-container"></div>
+
+    <script src="storage.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
