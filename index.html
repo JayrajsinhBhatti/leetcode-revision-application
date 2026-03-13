@@ -270,37 +270,8 @@
                         <p>All caught up! No problems need revision right now.</p>
                     </div>
                     
-                    <div id="revision-card" class="card flashcard hidden">
-                        <div class="flashcard-front">
-                            <div class="flashcard-header">
-                                <span class="badge" id="rev-difficulty">Difficulty</span>
-                                <span class="badge outline" id="rev-topic">Topic</span>
-                            </div>
-                            <h2 id="rev-title">Problem Title</h2>
-                            <a href="#" id="rev-link" target="_blank" class="btn sm outline">Open in LeetCode</a>
-                            
-                            <div class="rev-mistake-hint">
-                                <strong>Your Mistake:</strong> <span id="rev-mistake-type"></span>
-                            </div>
-                            
-                            <button id="rev-reveal-btn" class="btn primary full-width mt-4">Reveal Solution</button>
-                        </div>
-                        
-                        <div class="flashcard-back hidden">
-                            <div class="rev-section">
-                                <h3>What you did wrong</h3>
-                                <p id="rev-wrong"></p>
-                            </div>
-                            <div class="rev-section">
-                                <h3>Correct Approach</h3>
-                                <p id="rev-correct"></p>
-                            </div>
-                            
-                            <div class="rev-actions">
-                                <button id="rev-confused-btn" class="btn warning">Still Confused</button>
-                                <button id="rev-remember-btn" class="btn success">I Remember Now!</button>
-                            </div>
-                        </div>
+                    <div id="revision-list" class="revision-list hidden" style="display: flex; flex-direction: column; width: 100%; max-width: 700px; margin: 0 auto; padding-bottom: 2rem;">
+                        <!-- Flashcards populated by JS -->
                     </div>
                 </div>
             </section>

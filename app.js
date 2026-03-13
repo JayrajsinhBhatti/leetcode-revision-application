@@ -319,58 +319,93 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- Revision Mode ---
     const revEmpty = document.getElementById('revision-empty');
-    const revCard = document.getElementById('revision-card');
-    const revFront = revCard.querySelector('.flashcard-front');
-    const revBack = revCard.querySelector('.flashcard-back');
-    const revRevealBtn = document.getElementById('rev-reveal-btn');
-    const revConfusedBtn = document.getElementById('rev-confused-btn');
-    const revRememberBtn = document.getElementById('rev-remember-btn');
-
-    revRevealBtn.addEventListener('click', () => {
-        revFront.classList.add('hidden');
-        revBack.classList.remove('hidden');
-    });
-
-    revConfusedBtn.addEventListener('click', () => {
-        showToast('Kept in revision list.');
-        renderRevisionMode();
-    });
-
-    revRememberBtn.addEventListener('click', () => {
-        if (revProblem) {
-            StorageManager.updateProblem(revProblem.id, { needsRevision: false });
-            showToast('Marked as mastered!');
-            renderRevisionMode();
-        }
-    });
+    const revList = document.getElementById('revision-list');
 
     function renderRevisionMode() {
-        revFront.classList.remove('hidden');
-        revBack.classList.add('hidden');
-
         const toRevise = StorageManager.getProblems().filter(p => p.needsRevision);
         
         if (toRevise.length === 0) {
             revEmpty.classList.remove('hidden');
-            revCard.classList.add('hidden');
+            revList.classList.add('hidden');
             return;
         }
 
         revEmpty.classList.add('hidden');
-        revCard.classList.remove('hidden');
+        revList.classList.remove('hidden');
+        revList.innerHTML = '';
 
-        // Pick random
-        const randomIndex = Math.floor(Math.random() * toRevise.length);
-        revProblem = toRevise[randomIndex];
+        // Sort from latest to older
+        toRevise.sort((a,b) => new Date(b.createdAt) - new Date(a.createdAt));
 
-        document.getElementById('rev-difficulty').textContent = revProblem.difficulty;
-        document.getElementById('rev-difficulty').className = `badge diff-bg-${revProblem.difficulty.toLowerCase()} diff-${revProblem.difficulty.toLowerCase()}`;
-        document.getElementById('rev-topic').textContent = revProblem.topic;
-        document.getElementById('rev-title').textContent = revProblem.title;
-        document.getElementById('rev-link').href = revProblem.link;
-        document.getElementById('rev-mistake-type').textContent = revProblem.mistakeType;
+        toRevise.forEach(revProblem => {
+            const card = document.createElement('div');
+            card.className = 'card flashcard';
+            card.style.position = 'relative';
+            card.style.marginBottom = '2rem';
+            card.style.width = '100%';
 
-        document.getElementById('rev-wrong').textContent = revProblem.whatWentWrong;
-        document.getElementById('rev-correct').textContent = revProblem.correctApproach;
+            card.innerHTML = `
+                <div class="flashcard-front">
+                    <div class="flashcard-header">
+                        <span class="badge diff-bg-${revProblem.difficulty.toLowerCase()} diff-${revProblem.difficulty.toLowerCase()}">${revProblem.difficulty}</span>
+                        <span class="badge outline">${revProblem.topic}</span>
+                    </div>
+                    <h2>${revProblem.title}</h2>
+                    <a href="${revProblem.link}" target="_blank" class="btn sm outline" style="margin-bottom: 1rem;">Open in LeetCode</a>
+                    
+                    <div class="rev-mistake-hint">
+                        <strong>Your Mistake:</strong> <span>${revProblem.mistakeType}</span>
+                    </div>
+                    
+                    <button class="btn primary full-width mt-4 rev-reveal-btn">Reveal Solution</button>
+                </div>
+                
+                <div class="flashcard-back hidden">
+                    <div class="flashcard-header">
+                        <span class="badge diff-bg-${revProblem.difficulty.toLowerCase()} diff-${revProblem.difficulty.toLowerCase()}">${revProblem.difficulty}</span>
+                        <span class="badge outline">${revProblem.topic}</span>
+                    </div>
+                    <h2 style="margin-top: 2rem;">${revProblem.title}</h2>
+                    <div class="rev-section" style="margin-top: 1.5rem;">
+                        <h3>What you did wrong</h3>
+                        <p>${revProblem.whatWentWrong}</p>
+                    </div>
+                    <div class="rev-section">
+                        <h3>Correct Approach</h3>
+                        <p>${revProblem.correctApproach}</p>
+                    </div>
+                    
+                    <div class="rev-actions">
+                        <button class="btn warning rev-confused-btn">Still Confused</button>
+                        <button class="btn success rev-remember-btn">I Remember Now!</button>
+                    </div>
+                </div>
+            `;
+
+            // Event Listeners for this card
+            const btnReveal = card.querySelector('.rev-reveal-btn');
+            const btnConfused = card.querySelector('.rev-confused-btn');
+            const btnRemember = card.querySelector('.rev-remember-btn');
+            const front = card.querySelector('.flashcard-front');
+            const back = card.querySelector('.flashcard-back');
+
+            btnReveal.addEventListener('click', () => {
+                front.classList.add('hidden');
+                back.classList.remove('hidden');
+            });
+
+            btnConfused.addEventListener('click', () => {
+                showToast('Kept in revision list.');
+                renderRevisionMode();
+            });
+
+            btnRemember.addEventListener('click', () => {
+                StorageManager.updateProblem(revProblem.id, { needsRevision: false });
+                showToast('Marked as mastered!');
+                renderRevisionMode();
+            });
+
+            revList.appendChild(card);
+        });
     }
 });
